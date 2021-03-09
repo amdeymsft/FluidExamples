@@ -35,7 +35,7 @@ export interface IDiceRoller {
  */
 export class DiceRoller extends DataObject implements IDiceRoller {
 
-    private sharedCell?: SharedMap;
+    private sharedMap?: SharedMap;
     /**
      * initializingFirstTime is run only once by the first client to create the DataObject.  Here we use it to
      * initialize the state of the DataObject.
@@ -51,20 +51,20 @@ export class DiceRoller extends DataObject implements IDiceRoller {
      * DataObject, by registering an event listener for dice rolls.
      */
     protected async hasInitialized() {
-        this.sharedCell = await this.root.get<IFluidHandle<SharedMap>>("cell")?.get();
+        this.sharedMap = await this.root.get<IFluidHandle<SharedMap>>("cell")?.get();
 
-        this.sharedCell?.on("valueChanged", (changed: IValueChanged) => {
+        this.sharedMap?.on("valueChanged", (changed: IValueChanged) => {
             this.emit("diceRolled");
           });
     }
 
     public get value() {
-        return this.sharedCell?.get("value");
+        return this.sharedMap?.get("value");
     }
 
     public readonly roll = () => {
         const rollValue = Math.floor(Math.random() * 6) + 1;
-        this.sharedCell?.set("value", rollValue)
+        this.sharedMap?.set("value", rollValue)
     };
 }
 
