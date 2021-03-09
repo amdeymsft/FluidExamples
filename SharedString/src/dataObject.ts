@@ -4,8 +4,7 @@
  */
 
 import { DataObject, DataObjectFactory } from "@fluidframework/aqueduct";
-import { IValueChanged } from "@fluidframework/map";
-import { SharedCell } from "@fluidframework/cell";
+import { SequenceDeltaEvent, SharedString } from "@fluidframework/sequence";
 import { IFluidHandle } from "@fluidframework/core-interfaces";
 
 /**
@@ -15,7 +14,7 @@ export interface IDiceRoller {
     /**
      * Get the dice value as a number.
      */
-    readonly value: number;
+    readonly value: string;
 
     /**
      * Roll the dice.  Will cause a "diceRolled" event to be emitted.
@@ -35,15 +34,15 @@ export interface IDiceRoller {
  */
 export class DiceRoller extends DataObject implements IDiceRoller {
 
-    private sharedCell?: SharedCell;
+    private sharedString?: SharedString;
     /**
      * initializingFirstTime is run only once by the first client to create the DataObject.  Here we use it to
      * initialize the state of the DataObject.
      */
     protected async initializingFirstTime() {
-        const cell = SharedCell.create(this.runtime);
-        cell.set(1);
-        this.root.set("cell", cell.handle);
+        const ss = SharedString.create(this.runtime);
+        ss.insertText(0,"A");
+        this.root.set("string", ss.handle);
     }
 
     /**
@@ -51,20 +50,19 @@ export class DiceRoller extends DataObject implements IDiceRoller {
      * DataObject, by registering an event listener for dice rolls.
      */
     protected async hasInitialized() {
-        this.sharedCell = await this.root.get<IFluidHandle<SharedCell>>("cell")?.get();
+        this.sharedString = await this.root.get<IFluidHandle<SharedString>>("string")?.get();
 
-        this.sharedCell?.on("valueChanged", (changed: IValueChanged) => {
+        this.sharedString?.on("sequenceDelta", (event: SequenceDeltaEvent) => {
             this.emit("diceRolled");
           });
     }
 
     public get value() {
-        return this.sharedCell?.get();
+        return this.sharedString?.getText() ?? "";
     }
 
     public readonly roll = () => {
-        const rollValue = Math.floor(Math.random() * 6) + 1;
-        this.sharedCell?.set(rollValue)
+        this.sharedString?.insertText(0,"B");
     };
 }
 
@@ -75,6 +73,6 @@ export class DiceRoller extends DataObject implements IDiceRoller {
 export const DiceRollerInstantiationFactory = new DataObjectFactory(
     "dice-roller",
     DiceRoller,
-    [SharedCell?.getFactory()],
+    [SharedString?.getFactory()],
     {},
 );
