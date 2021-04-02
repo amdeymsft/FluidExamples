@@ -19,7 +19,9 @@ export interface IDiceRoller {
     /**
      * Roll the dice.  Will cause a "diceRolled" event to be emitted.
      */
-    roll: () => void;
+    insert: (pos: number, text: string) => void;
+    remove: (start: number, end: number) => void;
+    replace: (start: number, end: number, text: string) => void;
 
     /**
      * The diceRolled event will fire whenever someone rolls the device, either locally or remotely.
@@ -41,7 +43,7 @@ export class DiceRoller extends DataObject implements IDiceRoller {
      */
     protected async initializingFirstTime() {
         const ss = SharedString.create(this.runtime);
-        ss.insertText(0,"A");
+        ss.insertText(0,"The quick brown fox jumped over the lazy dog");
         this.root.set("string", ss.handle);
     }
 
@@ -61,8 +63,16 @@ export class DiceRoller extends DataObject implements IDiceRoller {
         return this.sharedString?.getText() ?? "";
     }
 
-    public readonly roll = () => {
-        this.sharedString?.insertText(0,"B");
+    public readonly insert = (pos: number, text: string)  => {
+        this.sharedString?.insertText(pos, text);
+    };
+
+    public readonly remove = (start: number, end: number)  => {
+        this.sharedString?.removeText(start, end);
+    };
+
+    public readonly replace = (start: number, end: number, text: string)  => {
+        this.sharedString?.replaceText(start, end, text);
     };
 }
 
