@@ -81,7 +81,7 @@ export function renderDiceRoller(diceRoller: IDiceRoller, div: HTMLDivElement) {
     removeButton.addEventListener("click", removeListener);
 
     const replaceListener = () => {
-        diceRoller.replace(Number(startInput.value), , Number(endInput.value), String(textInput.value));
+        diceRoller.replace(Number(startInput.value), Number(endInput.value), String(textInput.value));
         startInput.value = "";
         endInput.value = "";
         textInput.value = "";
